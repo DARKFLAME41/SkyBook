@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - SkyBook{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;color:#0f172a;letter-spacing:-0.5px;margin-bottom:4px;">
+      <i class="bi bi-speedometer2 me-2" style="color:#6366f1;"></i>Admin Dashboard
+    </h2>
+    <p style="color:#64748b;font-size:0.9rem;margin:0;">Manage flights, bookings, and system analytics</p>
+  </div>
+  <a href="{{ url_for('admin.add_flight') }}" id="admin-add-flight-btn"
+     class="btn fw-bold px-4 py-2 rounded-3"
+     style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;box-shadow:0 6px 20px rgba(99,102,241,0.4);">
+    <i class="bi bi-plus-circle me-2"></i>Add New Flight
+  </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
+  <div class="col-md-3 col-6">
+    <div class="admin-stat-card blue" id="stat-flights">
+      <div class="admin-stat-icon blue">
+        <i class="bi bi-airplane-fill"></i>
+      </div>
+      <div class="admin-stat-value">{{ stats.total_flights }}</div>
+      <div class="admin-stat-label">Active Flights</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="admin-stat-card green" id="stat-bookings">
+      <div class="admin-stat-icon green">
+        <i class="bi bi-ticket-perforated-fill"></i>
+      </div>
+      <div class="admin-stat-value">{{ stats.total_bookings }}</div>
+      <div class="admin-stat-label">Total Bookings</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="admin-stat-card cyan" id="stat-confirmed">
+      <div class="admin-stat-icon cyan">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <div class="admin-stat-value">{{ stats.confirmed }}</div>
+      <div class="admin-stat-label">Confirmed</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="admin-stat-card yellow" id="stat-users">
+      <div class="admin-stat-icon yellow">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div class="admin-stat-value">{{ stats.total_users }}</div>
+      <div class="admin-stat-label">Registered Users</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Links -->
+<div class="row g-3 mb-5">
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.add_flight') }}" id="quick-add-flight" class="d-block text-decoration-none">
+      <div style="background:#fff;border:1.5px solid #e8eef8;border-radius:16px;padding:1.5rem;text-align:center;transition:all 0.25s ease;" class="admin-quick-link">
+        <div style="width:50px;height:50px;background:linear-gradient(135deg,#10b981,#059669);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;margin:0 auto 0.75rem;box-shadow:0 6px 16px rgba(16,185,129,0.35);">
+          <i class="bi bi-plus-circle-fill"></i>
+        </div>
+        <div style="font-weight:700;color:#0f172a;">Add New Flight</div>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-top:3px;">Insert MongoDB document</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.flights') }}" id="quick-manage-flights" class="d-block text-decoration-none">
+      <div style="background:#fff;border:1.5px solid #e8eef8;border-radius:16px;padding:1.5rem;text-align:center;transition:all 0.25s ease;" class="admin-quick-link">
+        <div style="width:50px;height:50px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;margin:0 auto 0.75rem;box-shadow:0 6px 16px rgba(99,102,241,0.35);">
+          <i class="bi bi-airplane-fill"></i>
+        </div>
+        <div style="font-weight:700;color:#0f172a;">Manage Flights</div>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-top:3px;">Edit statuses &amp; photos</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.bookings') }}" id="quick-view-bookings" class="d-block text-decoration-none">
+      <div style="background:#fff;border:1.5px solid #e8eef8;border-radius:16px;padding:1.5rem;text-align:center;transition:all 0.25s ease;" class="admin-quick-link">
+        <div style="width:50px;height:50px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;margin:0 auto 0.75rem;box-shadow:0 6px 16px rgba(245,158,11,0.35);">
+          <i class="bi bi-journal-text"></i>
+        </div>
+        <div style="font-weight:700;color:#0f172a;">View All Bookings</div>
+        <div style="font-size:0.8rem;color:#94a3b8;margin-top:3px;">Monitor reservations</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Recent Bookings -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 style="font-weight:700;color:#0f172a;margin:0;">Recent Bookings</h5>
+  <a href="{{ url_for('admin.bookings') }}" style="font-size:0.85rem;color:#6366f1;font-weight:600;text-decoration:none;">View All →</a>
+</div>
+
+{% if recent_bookings %}
+<div class="admin-table-card">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>User</th>
+          <th>Route</th>
+          <th>Date</th>
+          <th>Seats</th>
+          <th>Total (₹)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in recent_bookings %}
+        <tr>
+          <td><code style="font-size:0.8rem;color:#6366f1;background:rgba(99,102,241,0.08);padding:3px 8px;border-radius:6px;">{{ b._id|string|truncate(12, true, '') }}</code></td>
+          <td style="font-weight:600;">{{ b.user.name }}</td>
+          <td>
+            <span style="font-weight:600;">{{ b.flight.origin_city or b.flight.origin }}</span>
+            <i class="bi bi-arrow-right text-muted mx-1" style="font-size:0.8rem;"></i>
+            <span style="font-weight:600;">{{ b.flight.destination_city or b.flight.destination }}</span>
+          </td>
+          <td style="color:#64748b;">{{ b.flight.dep_date or b.flight.departure_date }}</td>
+          <td>{{ b.seat_count }}</td>
+          <td style="font-weight:700;color:#10b981;">{{ "{:,.0f}".format(b.total_price) }}</td>
+          <td>
+            <span class="status-badge {% if b.status == 'confirmed' %}confirmed{% else %}cancelled{% endif %}">
+              {% if b.status == 'confirmed' %}
+              <i class="bi bi-check-circle-fill"></i>Confirmed
+              {% else %}
+              <i class="bi bi-x-circle-fill"></i>Cancelled
+              {% endif %}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-journal-text empty-state-icon"></i>
+  <p style="color:#94a3b8;">No bookings yet.</p>
+</div>
+{% endif %}
+
+<style>
+.admin-quick-link:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border-color: rgba(99,102,241,0.2) !important;
+}
+</style>
+{% endblock %}

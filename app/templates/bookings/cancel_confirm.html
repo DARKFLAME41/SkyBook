@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Cancel Booking - SkyBook{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-md-9">
+
+    <!-- Cancel Header Card -->
+    <div class="premium-card">
+      <div class="cancel-header">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.75rem;font-weight:700;padding:4px 12px;border-radius:99px;display:inline-block;margin-bottom:10px;border:1px solid rgba(255,255,255,0.25);">
+              Cancellation Request
+            </span>
+            <h3 style="font-family:'Syne',sans-serif;font-weight:800;color:#fff;margin-bottom:0;">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Cancellation
+            </h3>
+          </div>
+          <i class="bi bi-shield-x" style="font-size:3rem;color:rgba(255,255,255,0.2);"></i>
+        </div>
+      </div>
+
+      <div class="p-4">
+
+        <!-- Flight Overview -->
+        <div style="background:#f8faff;border:1.5px solid #e8eef8;border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span style="background:#6366f1;color:#fff;font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:99px;">
+              {{ booking.flight.airline_name or booking.flight.airline }} &bull; {{ booking.flight.flight_number }}
+            </span>
+            <span style="font-size:0.78rem;color:#94a3b8;">ID: <strong style="color:#475569;font-family:'Courier New',monospace;">{{ booking._id }}</strong></span>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span style="font-size:1.5rem;font-weight:800;color:#0f172a;">{{ booking.flight.origin_city or booking.flight.origin }}</span>
+            <i class="bi bi-arrow-right text-primary fs-5"></i>
+            <span style="font-size:1.5rem;font-weight:800;color:#0f172a;">{{ booking.flight.destination_city or booking.flight.destination }}</span>
+          </div>
+          <div style="font-size:0.83rem;color:#64748b;">
+            <i class="bi bi-calendar-event me-1"></i>{{ booking.flight.dep_date or booking.flight.departure_date }}
+            &nbsp;&bull;&nbsp;
+            <i class="bi bi-people me-1"></i>{{ booking.seat_count }} Passenger{{ 's' if booking.seat_count > 1 else '' }}
+          </div>
+        </div>
+
+        <!-- Refund Policy Banner -->
+        {% if refund.refund_percentage == 100 %}
+        <div style="background:rgba(16,185,129,0.08);border:1.5px solid rgba(16,185,129,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="width:44px;height:44px;background:rgba(16,185,129,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#10b981;flex-shrink:0;">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div>
+            <h6 style="font-weight:700;color:#065f46;margin-bottom:4px;">100% Full Refund Eligible</h6>
+            <p style="font-size:0.84rem;color:#047857;margin:0;">
+              Booked <strong>{{ refund.hours_elapsed }} hours ago</strong> — within the 3-hour window.
+              Full amount of <strong>₹{{ "{:,.0f}".format(refund.refund_amount) }}</strong> will be refunded.
+            </p>
+          </div>
+        </div>
+        {% else %}
+        <div style="background:rgba(245,158,11,0.08);border:1.5px solid rgba(245,158,11,0.25);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:1rem;">
+          <div style="width:44px;height:44px;background:rgba(245,158,11,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#f59e0b;flex-shrink:0;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div>
+            <h6 style="font-weight:700;color:#78350f;margin-bottom:4px;">50% Partial Refund Applicable</h6>
+            <p style="font-size:0.84rem;color:#92400e;margin:0;">
+              Booked <strong>{{ refund.hours_elapsed }} hours ago</strong> — beyond the 3-hour full refund window.
+              You'll receive <strong>₹{{ "{:,.0f}".format(refund.refund_amount) }}</strong> (50% refund).
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Refund Breakdown -->
+        <h6 style="font-weight:700;color:#0f172a;margin-bottom:0.75rem;">
+          <i class="bi bi-receipt me-2 text-primary"></i>Refund Breakdown
+        </h6>
+        <div style="border:1.5px solid #e8eef8;border-radius:14px;overflow:hidden;margin-bottom:1.5rem;">
+          <div class="refund-row" style="padding:0.9rem 1.25rem;">
+            <span style="color:#64748b;">Original Amount Paid</span>
+            <span style="font-weight:700;color:#0f172a;">₹{{ "{:,.0f}".format(booking.total_price) }}</span>
+          </div>
+          <div class="refund-row" style="padding:0.9rem 1.25rem;">
+            <span style="color:#64748b;">Cancellation Charge ({% if refund.refund_percentage == 100 %}0%{% else %}50%{% endif %})</span>
+            <span style="font-weight:700;color:#ef4444;">− ₹{{ "{:,.0f}".format(refund.deduction_amount) }}</span>
+          </div>
+          <div style="padding:1rem 1.25rem;background:#f8faff;display:flex;justify-content:space-between;align-items:center;border-top:1.5px solid #e8eef8;">
+            <span style="font-weight:700;font-size:1rem;color:#0f172a;">Net Refund Amount</span>
+            <span style="font-size:1.75rem;font-weight:900;color:#10b981;">₹{{ "{:,.0f}".format(refund.refund_amount) }}</span>
+          </div>
+        </div>
+
+        <!-- Policy Note -->
+        <div style="background:#f0f4ff;border:1px solid #e0e7ff;border-radius:12px;padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.82rem;color:#374151;">
+          <i class="bi bi-info-circle-fill text-primary me-2"></i>
+          <strong>Policy:</strong> Free cancellation within 3 hours of booking (100% refund). After 3 hours, 50% refund applies. Refunds are credited instantly.
+        </div>
+
+        <!-- Action Buttons -->
+        <form method="POST" action="{{ url_for('bookings.cancel', booking_id=booking._id) }}" id="cancel-confirm-form">
+          <div class="d-flex gap-3">
+            <a href="{{ url_for('bookings.list_bookings') }}" id="keep-ticket-btn"
+               class="btn btn-outline-secondary px-4 fw-semibold rounded-pill flex-grow-1">
+              <i class="bi bi-arrow-left me-1"></i>Keep My Ticket
+            </a>
+            <button type="submit" id="confirm-cancel-btn"
+                    class="btn btn-danger fw-bold px-4 rounded-pill flex-grow-1"
+                    style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;box-shadow:0 6px 20px rgba(239,68,68,0.35);">
+              <i class="bi bi-x-circle me-1"></i>Confirm Cancellation
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

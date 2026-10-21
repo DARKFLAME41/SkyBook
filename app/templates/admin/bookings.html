@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}All Bookings - Admin Hub{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;color:#0f172a;letter-spacing:-0.5px;margin-bottom:4px;">
+      <i class="bi bi-journal-text me-2" style="color:#6366f1;"></i>All Bookings
+    </h2>
+    <p style="color:#64748b;font-size:0.9rem;margin:0;">Complete booking history across all users</p>
+  </div>
+  <span style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:0.9rem;padding:7px 18px;border-radius:99px;box-shadow:0 4px 14px rgba(99,102,241,0.35);">
+    {{ bookings|length }} Total
+  </span>
+</div>
+
+{% if bookings %}
+<div class="admin-table-card">
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Lead Passenger</th>
+          <th>User</th>
+          <th>Route</th>
+          <th>Date</th>
+          <th>Seats</th>
+          <th>Total (₹)</th>
+          <th>Status / Refund</th>
+          <th>Booked At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr id="booking-row-{{ loop.index }}">
+          <td>
+            <code style="font-size:0.78rem;color:#6366f1;background:rgba(99,102,241,0.08);padding:3px 8px;border-radius:6px;">
+              {{ b._id|string|truncate(12, true, '') }}
+            </code>
+          </td>
+          <td style="font-weight:600;">{{ b.passengers[0].name if b.passengers else '—' }}</td>
+          <td>
+            <div style="font-weight:600;font-size:0.88rem;">{{ b.user.name }}</div>
+            <div style="font-size:0.75rem;color:#94a3b8;">{{ b.user.email if b.user.email else '' }}</div>
+          </td>
+          <td>
+            <div style="font-weight:600;">{{ b.flight.origin_city or b.flight.origin }}</div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;color:#64748b;">
+              <i class="bi bi-arrow-right" style="font-size:0.7rem;"></i>
+              {{ b.flight.destination_city or b.flight.destination }}
+            </div>
+          </td>
+          <td style="color:#64748b;font-size:0.88rem;">{{ b.flight.dep_date or b.flight.departure_date }}</td>
+          <td>
+            <span style="background:#f8faff;border:1px solid #e8eef8;border-radius:99px;padding:3px 10px;font-size:0.8rem;font-weight:600;">
+              {{ b.seat_count }}
+            </span>
+          </td>
+          <td style="font-weight:700;color:#10b981;">{{ "{:,.0f}".format(b.total_price) }}</td>
+          <td>
+            {% if b.status == 'confirmed' %}
+            <span class="status-badge confirmed">
+              <i class="bi bi-check-circle-fill"></i>Confirmed
+            </span>
+            {% else %}
+            <div>
+              <span class="status-badge cancelled">
+                <i class="bi bi-x-circle-fill"></i>Cancelled
+              </span>
+              {% if b.refund_amount is defined %}
+              <div style="font-size:0.75rem;color:#64748b;margin-top:4px;">
+                Refund: <strong style="color:#10b981;">₹{{ "{:,.0f}".format(b.refund_amount) }}</strong> ({{ b.refund_percentage }}%)
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <small style="color:#94a3b8;font-size:0.78rem;">
+              {{ b.booked_at.strftime('%d %b %Y') }}<br>{{ b.booked_at.strftime('%H:%M') }}
+            </small>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-journal-text empty-state-icon"></i>
+  <h5 style="color:#475569;font-weight:700;">No bookings yet</h5>
+  <p style="color:#94a3b8;font-size:0.9rem;">Bookings will appear here once users start booking flights.</p>
+</div>
+{% endif %}
+{% endblock %}

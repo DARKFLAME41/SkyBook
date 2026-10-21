@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Confirm Booking - SkyBook{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('auth.index') }}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('flights.detail', flight_id=flight._id) }}">{{ flight.flight_number }}</a></li>
+    <li class="breadcrumb-item active">Confirm Booking</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <!-- Passenger Form -->
+  <div class="col-lg-8">
+    <div class="premium-card mb-4">
+      <div class="card-header-gradient d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="fw-bold mb-0">
+            <i class="bi bi-person-lines-fill me-2"></i>Passenger Information
+          </h5>
+          <small style="color:rgba(255,255,255,0.65);">All passengers are stored as embedded objects in MongoDB</small>
+        </div>
+        <span class="mongo-embedded-badge"><i class="bi bi-diagram-2 me-1"></i>passengers: []</span>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" action="{{ url_for('bookings.new_booking', flight_id=flight._id) }}" id="confirm-booking-form">
+          <input type="hidden" name="seat_count" value="{{ seat_count }}"/>
+
+          {% for i in range(seat_count) %}
+          <div class="passenger-card" id="passenger-card-{{ i }}">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="passenger-number">{{ i + 1 }}</div>
+              <div>
+                <h6 class="fw-bold mb-0" style="color:#0f172a;">Passenger {{ i + 1 }}</h6>
+                <small style="color:#94a3b8;">Seat #{{ i + 1 }} &bull; {{ flight.flight_class }}</small>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="passenger_name_{{ i }}" id="pax-name-{{ i }}"
+                       class="form-control" placeholder="As on Government ID" required/>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Age</label>
+                <input type="number" name="passenger_age_{{ i }}" id="pax-age-{{ i }}"
+                       class="form-control" placeholder="e.g. 28" min="1" max="120"/>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Gender</label>
+                <select name="passenger_gender_{{ i }}" id="pax-gender-{{ i }}" class="form-select">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- Policy Note -->
+          <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:#374151;">
+            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+            <strong>Cancellation Policy:</strong> Full 100% refund within 3 hours of booking. 50% refund thereafter.
+          </div>
+
+          <div class="d-flex gap-3">
+            <button type="submit" id="confirm-booking-btn" class="btn-book-now btn flex-grow-1" style="background:linear-gradient(135deg,#10b981,#059669)!important;box-shadow:0 8px 25px rgba(16,185,129,0.4)!important;">
+              <i class="bi bi-check-circle-fill fs-5"></i>
+              <span>Confirm &amp; Complete Booking</span>
+            </button>
+            <a href="{{ url_for('flights.detail', flight_id=flight._id) }}" id="cancel-booking-btn"
+               class="btn btn-outline-secondary px-4 fw-semibold rounded-3">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flight Summary Sidebar -->
+  <div class="col-lg-4">
+    <div class="premium-card" style="position:sticky;top:80px;">
+      <!-- Flight Photo Header -->
+      <div style="position:relative;height:170px;overflow:hidden;">
+        <img src="{{ flight.primary_photo }}" alt="Flight" class="w-100 h-100" style="object-fit:cover;"/>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.9),rgba(0,0,0,0.3),transparent);display:flex;align-items:flex-end;padding:1.25rem;">
+          <div>
+            <span style="background:#6366f1;color:#fff;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:99px;display:inline-block;margin-bottom:6px;">{{ flight.airline_name }}</span>
+            <div style="font-weight:700;color:#fff;font-size:1.1rem;">Flight {{ flight.flight_number }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <!-- Route -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;">{{ flight.origin_city }}</div>
+            <div style="font-size:0.8rem;color:#94a3b8;">{{ flight.dep_time }}</div>
+          </div>
+          <i class="bi bi-arrow-right text-primary fs-4"></i>
+          <div class="text-end">
+            <div style="font-size:1.2rem;font-weight:800;color:#0f172a;">{{ flight.destination_city }}</div>
+            <div style="font-size:0.8rem;color:#94a3b8;">{{ flight.arr_time }}</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.83rem;color:#64748b;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #f1f5f9;">
+          <i class="bi bi-calendar3 me-1"></i>{{ flight.dep_date }}
+          &nbsp;&bull;&nbsp;
+          <i class="bi bi-clock me-1"></i>{{ flight.duration }}
+        </div>
+
+        <!-- Price Breakdown -->
+        <div class="price-breakdown-row">
+          <span style="color:#64748b;font-size:0.88rem;">Seats reserved</span>
+          <span style="font-weight:600;">{{ seat_count }} Seat{{ 's' if seat_count > 1 else '' }}</span>
+        </div>
+        <div class="price-breakdown-row">
+          <span style="color:#64748b;font-size:0.88rem;">Price per seat</span>
+          <span style="font-weight:600;">₹{{ "{:,.0f}".format(flight.price) }}</span>
+        </div>
+        <div style="border-top:1.5px solid #e8eef8;margin-top:0.75rem;padding-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;color:#0f172a;">Total Amount</span>
+          <span style="font-size:1.75rem;font-weight:900;color:#10b981;">₹{{ "{:,.0f}".format(flight.price * seat_count) }}</span>
+        </div>
+
+        <div style="margin-top:1rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:0.75rem;font-size:0.8rem;color:#166534;">
+          <i class="bi bi-shield-check-fill me-1"></i>
+          Payment is processed securely. Instant e-ticket issued.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

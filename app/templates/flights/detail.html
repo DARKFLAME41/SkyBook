@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block title %}{{ flight.airline_name }} {{ flight.flight_number }} - SkyBook{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('auth.index') }}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('flights.search') }}">Flights</a></li>
+    <li class="breadcrumb-item active">{{ flight.flight_number }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <!-- LEFT COLUMN -->
+  <div class="col-lg-8">
+
+    <!-- Photo Gallery -->
+    <div class="premium-card mb-4">
+      <div class="card-header-dark d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-images text-info fs-5"></i>
+          <span class="fw-bold">Flight Photo Gallery</span>
+          <span class="badge" style="background:rgba(255,255,255,0.15); font-size:0.75rem; padding:4px 10px; border-radius:20px;">{{ flight.photos|length }} Photos</span>
+        </div>
+        <span class="mongo-embedded-badge"><i class="bi bi-database-fill me-1"></i>photos: []</span>
+      </div>
+      <div class="p-4">
+        <!-- Main Image -->
+        <div class="position-relative mb-3">
+          <img id="mainGalleryImg" src="{{ flight.primary_photo }}" alt="Flight Photo" class="main-gallery-img"/>
+          <div id="imageCaption" style="position:absolute;bottom:0;left:0;right:0;padding:1rem 1.5rem;background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);border-radius:0 0 20px 20px;">
+            <div class="d-flex align-items-center gap-2" style="color:#fff;">
+              <i class="bi bi-camera-fill text-info"></i>
+              <span id="captionText" style="font-size:0.9rem; font-weight:500;">Primary View</span>
+            </div>
+          </div>
+        </div>
+        <!-- Thumbnails -->
+        {% if flight.photos %}
+        <div class="d-flex gap-2 overflow-x-auto py-1" style="scroll-behavior:smooth;">
+          {% for p in flight.photos %}
+            {% set photo_url = p.url if p is mapping else p %}
+            {% set caption = p.caption if p is mapping else 'Flight View' %}
+            <img src="{{ photo_url }}"
+                 alt="{{ caption }}"
+                 class="gallery-thumbnail {% if photo_url == flight.primary_photo %}active{% endif %}"
+                 onclick="selectPhoto('{{ photo_url }}', '{{ caption }}', this)"
+                 title="{{ caption }}"/>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Flight Information -->
+    <div class="premium-card mb-4">
+      <div class="card-header-gradient d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="fw-bold mb-0">{{ flight.airline_name }}</h4>
+          <small style="color:rgba(255,255,255,0.7);">Flight {{ flight.flight_number }} &bull; {{ flight.flight_class }}</small>
+        </div>
+        <span style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:1rem;padding:8px 18px;border-radius:10px;font-family:'Courier New',monospace;border:1px solid rgba(255,255,255,0.2);">
+          {{ flight.flight_number }}
+        </span>
+      </div>
+
+      <div class="p-4">
+        <!-- Route Display -->
+        <div class="row text-center align-items-center mb-4 g-0" style="background:#f8faff;border-radius:16px;padding:1.5rem;">
+          <div class="col-4">
+            <div style="font-size:2.25rem;font-weight:900;color:#0f172a;line-height:1;">{{ flight.dep_time }}</div>
+            <div style="font-size:1.1rem;font-weight:700;color:#6366f1;margin-top:4px;">{{ flight.origin_city }}</div>
+            <small style="color:#94a3b8;display:block;margin-top:2px;">{{ flight.origin_airport or flight.origin_code }}</small>
+          </div>
+          <div class="col-4">
+            <div style="font-size:0.82rem;color:#64748b;font-weight:600;margin-bottom:6px;">{{ flight.duration }}</div>
+            <div class="d-flex align-items-center justify-content-center gap-1">
+              <span style="flex:1;height:2px;background:linear-gradient(to right,#6366f1,#06b6d4);border-radius:99px;"></span>
+              <i class="bi bi-airplane-fill text-primary" style="font-size:1.25rem;"></i>
+              <span style="flex:1;height:2px;background:linear-gradient(to right,#06b6d4,#6366f1);border-radius:99px;"></span>
+            </div>
+            <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:6px;">
+              <i class="bi bi-calendar-check me-1"></i>{{ flight.dep_date }}
+            </div>
+          </div>
+          <div class="col-4">
+            <div style="font-size:2.25rem;font-weight:900;color:#0f172a;line-height:1;">{{ flight.arr_time }}</div>
+            <div style="font-size:1.1rem;font-weight:700;color:#ef4444;margin-top:4px;">{{ flight.destination_city }}</div>
+            <small style="color:#94a3b8;display:block;margin-top:2px;">{{ flight.destination_airport or flight.destination_code }}</small>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <h6 class="fw-bold mb-3" style="color:#0f172a;">
+          <i class="bi bi-info-circle-fill text-primary me-2"></i>Flight Details
+        </h6>
+        <div class="row g-3 mb-4">
+          <!-- Aircraft -->
+          <div class="col-md-6">
+            <div class="info-detail-box">
+              <div class="info-detail-icon blue" style="background:rgba(99,102,241,0.12);color:#6366f1;">
+                <i class="bi bi-gear-wide-connected"></i>
+              </div>
+              <div style="font-weight:700;font-size:0.88rem;color:#374151;margin-bottom:8px;">Aircraft Details</div>
+              <div style="font-size:0.84rem;color:#64748b;line-height:1.9;">
+                <div><strong>Model:</strong> {{ flight.aircraft.model if flight.aircraft is mapping else 'Boeing 737-800' }}</div>
+                <div><strong>Manufacturer:</strong> {{ flight.aircraft.manufacturer if flight.aircraft is mapping else 'Boeing' }}</div>
+                <div><strong>Registration:</strong> {{ flight.aircraft.registration if flight.aircraft is mapping else 'VT-SKY' }}</div>
+              </div>
+            </div>
+          </div>
+          <!-- Pricing & Seats -->
+          <div class="col-md-6">
+            <div class="info-detail-box">
+              <div class="info-detail-icon green" style="background:rgba(16,185,129,0.12);color:#10b981;">
+                <i class="bi bi-ticket-detailed"></i>
+              </div>
+              <div style="font-weight:700;font-size:0.88rem;color:#374151;margin-bottom:8px;">Pricing &amp; Availability</div>
+              <div style="font-size:0.84rem;color:#64748b;line-height:1.9;">
+                <div><strong>Base Fare:</strong> <span style="color:#10b981;font-weight:700;">₹{{ "{:,.0f}".format(flight.price) }}</span></div>
+                <div><strong>Class:</strong> {{ flight.flight_class }}</div>
+                <div><strong>Seats Available:</strong> <span style="color:{% if flight.seats_avail > 10 %}#10b981{% elif flight.seats_avail > 0 %}#f59e0b{% else %}#ef4444{% endif %};font-weight:600;">{{ flight.seats_avail }} / {{ flight.seats_tot }}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amenities -->
+        {% if flight.amenities %}
+        <h6 class="fw-bold mb-3" style="color:#0f172a;">
+          <i class="bi bi-stars text-warning me-2"></i>Onboard Amenities
+        </h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for am in flight.amenities %}
+          <span class="amenity-pill">
+            <i class="bi bi-check-circle-fill text-success"></i>{{ am }}
+          </span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: Booking Widget -->
+  <div class="col-lg-4">
+    <div class="booking-widget">
+      <div class="booking-widget-header">
+        <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-ticket-perforated-fill"></i>
+          <span>Book This Flight</span>
+        </h5>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.7);margin-top:4px;">Secure &amp; instant confirmation</div>
+      </div>
+
+      <div class="p-4">
+        {% if flight.seats_avail > 0 and flight.status == 'active' %}
+          {% if current_user.is_authenticated %}
+          <form action="{{ url_for('bookings.new_booking', flight_id=flight._id) }}" method="GET" id="book-flight-form">
+            <div class="mb-4">
+              <label class="form-label">Number of Passengers</label>
+              <select name="seats" class="form-select" id="seatSelect">
+                {% for i in range(1, [flight.seats_avail + 1, 10]|min) %}
+                <option value="{{ i }}">{{ i }} Passenger{{ 's' if i > 1 else '' }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div style="background:#f8faff;border:1.5px solid #e8eef8;border-radius:14px;padding:1rem;margin-bottom:1.5rem;">
+              <div class="price-breakdown-row">
+                <span style="color:#64748b;">Base fare / seat</span>
+                <span style="font-weight:600;color:#0f172a;">₹{{ "{:,.0f}".format(flight.price) }}</span>
+              </div>
+              <div class="price-breakdown-row">
+                <span style="color:#64748b;">Taxes &amp; fees</span>
+                <span style="color:#10b981;font-size:0.85rem;font-weight:500;">Included</span>
+              </div>
+              <div style="border-top:1.5px solid #e8eef8;margin-top:0.75rem;padding-top:0.75rem;">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span style="font-weight:700;color:#0f172a;">Total Payable</span>
+                  <div class="total-price-display" id="totalPrice">₹{{ "{:,.0f}".format(flight.price) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="proceed-booking-btn" class="btn-book-now btn">
+              <i class="bi bi-arrow-right-circle-fill fs-5"></i>
+              <span>Proceed to Booking</span>
+            </button>
+
+            <div style="font-size:0.78rem;color:#94a3b8;text-align:center;margin-top:0.75rem;">
+              <i class="bi bi-lock-fill me-1"></i>Secure booking &bull; Free cancellation within 3 hrs
+            </div>
+          </form>
+          {% else %}
+          <div class="text-center py-3">
+            <div style="width:64px;height:64px;background:rgba(245,158,11,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;color:#f59e0b;">
+              <i class="bi bi-lock-fill"></i>
+            </div>
+            <p style="color:#64748b;font-size:0.9rem;margin-bottom:1.25rem;">Please log in or register to book this flight.</p>
+            <a href="{{ url_for('auth.login') }}" id="login-to-book-btn" class="btn-book-now btn mb-2">
+              <i class="bi bi-box-arrow-in-right"></i>Log In to Book
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary w-100 fw-semibold rounded-3 mt-2" id="register-to-book-btn">
+              Create Free Account
+            </a>
+          </div>
+          {% endif %}
+        {% else %}
+        <div style="background:rgba(239,68,68,0.08);border:1.5px solid rgba(239,68,68,0.2);border-radius:12px;padding:1.25rem;text-align:center;">
+          <i class="bi bi-exclamation-octagon-fill text-danger d-block fs-2 mb-2"></i>
+          <strong style="color:#7f1d1d;">
+            {% if flight.status != 'active' %}Flight Unavailable{% else %}Sold Out{% endif %}
+          </strong>
+          <p style="font-size:0.85rem;color:#ef4444;margin:0.5rem 0 0;">
+            {% if flight.status != 'active' %}This flight is currently inactive.{% else %}No seats remaining on this flight.{% endif %}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Info -->
+      <div style="border-top:1px solid #f1f5f9;padding:1rem 1.5rem;background:#f8faff;">
+        <div style="font-size:0.8rem;color:#64748b;display:flex;flex-direction:column;gap:6px;">
+          <div><i class="bi bi-clock me-2 text-primary"></i>Duration: <strong>{{ flight.duration }}</strong></div>
+          <div><i class="bi bi-calendar3 me-2 text-primary"></i>Date: <strong>{{ flight.dep_date }}</strong></div>
+          <div><i class="bi bi-people-fill me-2 text-primary"></i>Seats left: <strong style="color:{% if flight.seats_avail > 10 %}#10b981{% else %}#f59e0b{% endif %};">{{ flight.seats_avail }}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function selectPhoto(url, caption, el) {
+  const img = document.getElementById('mainGalleryImg');
+  const capText = document.getElementById('captionText');
+  img.style.opacity = '0';
+  setTimeout(() => {
+    img.src = url;
+    capText.textContent = caption;
+    img.style.opacity = '1';
+  }, 150);
+  document.querySelectorAll('.gallery-thumbnail').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+// Dynamic price update
+const basePrice = {{ flight.price }};
+const select = document.getElementById('seatSelect');
+const total = document.getElementById('totalPrice');
+if (select && total) {
+  select.addEventListener('change', function() {
+    const n = parseInt(this.value);
+    total.textContent = '₹' + new Intl.NumberFormat('en-IN').format(basePrice * n);
+  });
+}
+// Smooth image transition
+const mainImg = document.getElementById('mainGalleryImg');
+if (mainImg) {
+  mainImg.style.transition = 'opacity 0.15s ease';
+}
+</script>
+{% endblock %}

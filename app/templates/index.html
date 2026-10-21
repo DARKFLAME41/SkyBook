@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}SkyBook - Book Flights Instantly{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div class="hero-banner">
+  <div class="hero-plane"><i class="bi bi-airplane-fill"></i></div>
+  <div class="row align-items-center g-5">
+    <!-- Left: Hero Text -->
+    <div class="col-lg-5">
+      <div class="hero-badge">
+        <i class="bi bi-lightning-charge-fill"></i>
+        Powered by MongoDB &amp; Flask
+      </div>
+      <h1 class="hero-title">
+        Fly Anywhere,<br>
+        <span>Anytime.</span>
+      </h1>
+      <p class="hero-subtitle">
+        Discover incredible fares with real-time seat availability. Book in seconds, travel with confidence.
+      </p>
+      <div class="d-flex flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.6); font-size:0.88rem;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#10b981;"></div>
+          Instant Confirmation
+        </div>
+        <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.6); font-size:0.88rem;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;"></div>
+          100% Secure Booking
+        </div>
+        <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.6); font-size:0.88rem;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;"></div>
+          Easy Cancellation
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Search Box -->
+    <div class="col-lg-7">
+      <div class="search-card p-4">
+        <h5 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color:#0f172a;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.9rem;">
+            <i class="bi bi-search"></i>
+          </div>
+          Search Flights
+        </h5>
+        <form action="{{ url_for('flights.search') }}" method="GET" id="hero-search-form">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">From (City / Airport)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-0">
+                  <i class="bi bi-geo-alt-fill text-primary"></i>
+                </span>
+                <input type="text" name="origin" id="hero-origin" class="form-control bg-light border-0" placeholder="e.g. Mumbai or BOM" required/>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">To (City / Airport)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border-0">
+                  <i class="bi bi-geo-alt text-danger"></i>
+                </span>
+                <input type="text" name="destination" id="hero-destination" class="form-control bg-light border-0" placeholder="e.g. Delhi or DEL" required/>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Departure Date</label>
+              <input type="date" name="date" id="hero-date" class="form-control bg-light border-0"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Travel Class</label>
+              <select name="flight_class" id="hero-class" class="form-select bg-light border-0">
+                <option value="">All Classes</option>
+                <option value="Economy">Economy</option>
+                <option value="Business">Business</option>
+                <option value="First Class">First Class</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Max Price (₹)</label>
+              <input type="number" name="max_price" id="hero-price" class="form-control bg-light border-0" placeholder="e.g. 10000"/>
+            </div>
+            <div class="col-12">
+              <button type="submit" id="hero-search-btn" class="btn-search-main w-100">
+                <i class="bi bi-search"></i>
+                <span>Search Available Flights</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Flights -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="section-title mb-1">Featured Flights</h2>
+    <p class="section-subtitle mb-0">Handpicked routes with best fares &amp; photo galleries</p>
+  </div>
+  <a href="{{ url_for('flights.search') }}" id="view-all-flights" class="btn btn-outline-primary btn-sm px-4 rounded-pill fw-semibold">
+    View All <i class="bi bi-arrow-right ms-1"></i>
+  </a>
+</div>
+
+<div class="row g-4 mb-5">
+  {% for flight in featured_flights %}
+  <div class="col-lg-4 col-md-6">
+    <div class="flight-card">
+      <!-- Image -->
+      <div class="flight-img-container">
+        <img src="{{ flight.primary_photo }}" alt="{{ flight.flight_number }}" loading="lazy"/>
+        <span class="photo-badge">
+          <i class="bi bi-images me-1"></i>{{ flight.photos|length }} Photos
+        </span>
+        <span class="class-badge">{{ flight.flight_class }}</span>
+        <div class="flight-img-overlay">
+          <div class="d-flex justify-content-between align-items-end">
+            <div>
+              <div style="font-size:0.8rem; color:rgba(255,255,255,0.7);">{{ flight.airline_name }}</div>
+              <div style="font-weight:700; color:#fff; font-size:1rem;">{{ flight.flight_number }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Body -->
+      <div class="card-body">
+        <div class="route-display mb-3">
+          <div>
+            <div class="route-city">{{ flight.origin_city }}</div>
+            <div class="route-time">{{ flight.dep_time }}</div>
+          </div>
+          <div class="route-arrow">
+            <i class="bi bi-airplane-fill text-primary" style="font-size:1.1rem;"></i>
+            <div style="font-size:0.72rem; color:#94a3b8; white-space:nowrap;">{{ flight.duration }}</div>
+          </div>
+          <div class="text-end">
+            <div class="route-city">{{ flight.destination_city }}</div>
+            <div class="route-time">{{ flight.arr_time }}</div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-1 mb-3">
+          <span class="amenity-pill"><i class="bi bi-calendar3 me-1"></i>{{ flight.dep_date }}</span>
+          <span class="amenity-pill"><i class="bi bi-people-fill me-1"></i>{{ flight.seats_avail }} seats</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="price-label">Starting from</div>
+            <div class="price-display">₹{{ "{:,.0f}".format(flight.price) }}</div>
+          </div>
+          <a href="{{ url_for('flights.detail', flight_id=flight._id) }}" id="view-flight-{{ loop.index }}" class="btn-view-flight btn">
+            View Details
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="empty-state">
+      <i class="bi bi-airplane empty-state-icon"></i>
+      <h5 style="color:#64748b;">No flights available right now</h5>
+      <p style="color:#94a3b8; font-size:0.9rem;">Check back soon or contact an admin to seed flight data.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Why SkyBook -->
+<div class="row g-4 mb-5">
+  <div class="col-12">
+    <h2 class="section-title text-center mb-2">Why Choose SkyBook?</h2>
+    <p class="section-subtitle text-center mb-4">Your trusted aviation booking partner</p>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="text-center p-3">
+      <div style="width:56px;height:56px;background:rgba(99,102,241,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#6366f1;margin:0 auto 1rem;">
+        <i class="bi bi-lightning-charge-fill"></i>
+      </div>
+      <div style="font-weight:700;color:#0f172a;margin-bottom:0.3rem;">Instant Booking</div>
+      <div style="font-size:0.82rem;color:#64748b;">Confirm your seat in seconds</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="text-center p-3">
+      <div style="width:56px;height:56px;background:rgba(16,185,129,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#10b981;margin:0 auto 1rem;">
+        <i class="bi bi-shield-check-fill"></i>
+      </div>
+      <div style="font-weight:700;color:#0f172a;margin-bottom:0.3rem;">100% Secure</div>
+      <div style="font-size:0.82rem;color:#64748b;">Your data is always safe</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="text-center p-3">
+      <div style="width:56px;height:56px;background:rgba(6,182,212,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#06b6d4;margin:0 auto 1rem;">
+        <i class="bi bi-cash-stack"></i>
+      </div>
+      <div style="font-weight:700;color:#0f172a;margin-bottom:0.3rem;">Best Fares</div>
+      <div style="font-size:0.82rem;color:#64748b;">Transparent pricing, no hidden fees</div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="text-center p-3">
+      <div style="width:56px;height:56px;background:rgba(245,158,11,0.1);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#f59e0b;margin:0 auto 1rem;">
+        <i class="bi bi-headset"></i>
+      </div>
+      <div style="font-weight:700;color:#0f172a;margin-bottom:0.3rem;">Easy Cancellation</div>
+      <div style="font-size:0.82rem;color:#64748b;">Hassle-free refund policy</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

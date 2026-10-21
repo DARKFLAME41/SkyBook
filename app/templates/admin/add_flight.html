@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Add New Flight - Admin Hub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a href="{{ url_for('admin.flights') }}" style="color:#64748b;text-decoration:none;font-size:0.9rem;">
+        <i class="bi bi-arrow-left me-1"></i>Back to Flights
+      </a>
+    </div>
+
+    <div class="premium-card">
+      <div class="card-header-gradient d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="fw-bold mb-0">
+            <i class="bi bi-airplane me-2"></i>Add New Flight
+          </h4>
+          <small style="color:rgba(255,255,255,0.65);">Creates a MongoDB document with embedded subdocuments (airline, route, schedule, pricing, photos)</small>
+        </div>
+        <span class="mongo-embedded-badge">
+          <i class="bi bi-database-fill-add me-1"></i>insert_one()
+        </span>
+      </div>
+
+      <div class="p-4">
+        <form action="{{ url_for('admin.add_flight') }}" method="POST" enctype="multipart/form-data" id="add-flight-form">
+
+          <!-- Section 1: Basic Info -->
+          <div class="form-section-title">
+            <i class="bi bi-info-circle-fill" style="color:#6366f1;"></i>
+            Basic Flight Information
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Flight Number <span class="text-danger">*</span></label>
+              <input type="text" name="flight_number" id="flight-number-input" class="form-control" placeholder="e.g. AI-909" required/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Airline Name <span class="text-danger">*</span></label>
+              <input type="text" name="airline" id="airline-input" class="form-control" placeholder="e.g. Air India, IndiGo" required/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Aircraft Model</label>
+              <input type="text" name="aircraft_model" id="aircraft-input" class="form-control" placeholder="e.g. Boeing 787 Dreamliner"/>
+            </div>
+          </div>
+
+          <!-- Section 2: Route -->
+          <div class="form-section-title">
+            <i class="bi bi-geo-alt-fill" style="color:#ef4444;"></i>
+            Route (Embedded Subdocument)
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Origin City <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text" style="background:#f0f4ff;border:1.5px solid #e0e7ff;border-right:none;border-radius:8px 0 0 8px;">
+                  <i class="bi bi-geo-alt-fill text-primary"></i>
+                </span>
+                <input type="text" name="origin" id="origin-input" class="form-control" placeholder="e.g. Mumbai" required
+                       style="border-left:none;border-radius:0 8px 8px 0;"/>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Destination City <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text" style="background:#fff0f0;border:1.5px solid #fecaca;border-right:none;border-radius:8px 0 0 8px;">
+                  <i class="bi bi-geo-alt text-danger"></i>
+                </span>
+                <input type="text" name="destination" id="destination-input" class="form-control" placeholder="e.g. Delhi" required
+                       style="border-left:none;border-radius:0 8px 8px 0;"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Schedule -->
+          <div class="form-section-title">
+            <i class="bi bi-clock-fill" style="color:#06b6d4;"></i>
+            Schedule (Embedded Subdocument)
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Departure Date <span class="text-danger">*</span></label>
+              <input type="date" name="departure_date" id="dep-date-input" class="form-control" required/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Departure Time <span class="text-danger">*</span></label>
+              <input type="time" name="departure_time" id="dep-time-input" class="form-control" required/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Arrival Time <span class="text-danger">*</span></label>
+              <input type="time" name="arrival_time" id="arr-time-input" class="form-control" required/>
+            </div>
+          </div>
+
+          <!-- Section 4: Pricing & Seats -->
+          <div class="form-section-title">
+            <i class="bi bi-tag-fill" style="color:#10b981;"></i>
+            Pricing &amp; Seat Info (Embedded Subdocuments)
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Base Price (₹) <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text" style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-right:none;border-radius:8px 0 0 8px;font-weight:700;color:#10b981;">₹</span>
+                <input type="number" step="0.01" name="price" id="price-input" class="form-control" placeholder="3499.00" required
+                       style="border-left:none;border-radius:0 8px 8px 0;"/>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Total Seats <span class="text-danger">*</span></label>
+              <input type="number" name="seats_total" id="seats-input" class="form-control" value="180" required/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Travel Class</label>
+              <select name="flight_class" id="class-select" class="form-select">
+                <option value="Economy">Economy</option>
+                <option value="Business">Business</option>
+                <option value="First Class">First Class</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Section 5: Photo -->
+          <div class="form-section-title">
+            <i class="bi bi-camera-fill" style="color:#f59e0b;"></i>
+            Primary Flight Photo (photos: [] Array)
+          </div>
+          <div class="row g-3 mb-5">
+            <div class="col-md-6">
+              <label class="form-label">Image URL</label>
+              <input type="url" name="photo_url" id="photo-url-input" class="form-control" placeholder="https://images.unsplash.com/..."/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">OR Upload Image File</label>
+              <input type="file" name="photo_file" id="photo-file-input" class="form-control" accept="image/*"/>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div style="border-top:1.5px solid #e8eef8;padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+            <a href="{{ url_for('admin.flights') }}" id="cancel-add-flight"
+               class="btn btn-outline-secondary px-4 fw-semibold rounded-3">
+              Cancel
+            </a>
+            <button type="submit" id="submit-add-flight-btn"
+                    class="btn fw-bold px-5 py-2 rounded-3"
+                    style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;box-shadow:0 8px 24px rgba(99,102,241,0.4);">
+              <i class="bi bi-check-circle me-2"></i>Create Flight Document
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

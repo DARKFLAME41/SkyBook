@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}E-Ticket Confirmed - SkyBook{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+
+    <!-- Status Header -->
+    <div class="text-center mb-4">
+      {% if booking.status == 'cancelled' %}
+      <div class="cancelled-icon">
+        <i class="bi bi-x-circle-fill"></i>
+      </div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Booking Cancelled</h2>
+      <p style="color:#64748b;font-size:0.95rem;">Your booking was cancelled. Refund details shown below.</p>
+      {% else %}
+      <div class="confirmed-icon">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800;color:#0f172a;letter-spacing:-0.5px;">Booking Confirmed!</h2>
+      <p style="color:#64748b;font-size:0.95rem;">Your e-ticket has been issued and confirmed successfully.</p>
+      {% endif %}
+    </div>
+
+    <!-- E-Ticket Card -->
+    <div class="eticket-card mb-4">
+      <!-- Hero Image -->
+      <div class="eticket-header">
+        <img src="{{ booking.flight.primary_photo or 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=80' }}" alt="Flight Photo"/>
+        <div class="eticket-header-overlay">
+          <div class="d-flex justify-content-between align-items-end w-100">
+            <div>
+              <span style="background:#6366f1;color:#fff;font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:99px;display:inline-block;margin-bottom:8px;">
+                {{ booking.flight.airline_name or booking.flight.airline }}
+              </span>
+              <h4 style="color:#fff;font-weight:800;margin-bottom:0;">Flight {{ booking.flight.flight_number }}</h4>
+            </div>
+            <div class="text-end">
+              <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);">PNR / Booking ID</div>
+              <div class="pnr-display">{{ booking._id }}</div>
+              {% if booking.status == 'cancelled' %}
+              <span style="background:#ef4444;color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:99px;margin-top:6px;display:inline-block;">
+                <i class="bi bi-x-circle me-1"></i>Cancelled
+              </span>
+              {% else %}
+              <span style="background:#10b981;color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:99px;margin-top:6px;display:inline-block;">
+                <i class="bi bi-shield-check me-1"></i>Verified
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Body -->
+      <div class="p-4">
+
+        <!-- Route -->
+        <div class="row text-center align-items-center mb-4 g-0" style="background:#f8faff;border-radius:14px;padding:1.25rem;">
+          <div class="col-4">
+            <div style="font-size:2rem;font-weight:900;color:#0f172a;line-height:1;">{{ booking.flight.dep_time or booking.flight.departure_time }}</div>
+            <div style="font-size:1rem;font-weight:700;color:#6366f1;margin-top:4px;">{{ booking.flight.origin_city or booking.flight.origin }}</div>
+          </div>
+          <div class="col-4">
+            <i class="bi bi-airplane-fill text-primary" style="font-size:1.5rem;"></i>
+            <div style="font-size:0.8rem;color:#10b981;font-weight:600;margin-top:4px;">
+              <i class="bi bi-calendar-check me-1"></i>{{ booking.flight.dep_date or booking.flight.departure_date }}
+            </div>
+          </div>
+          <div class="col-4">
+            <div style="font-size:2rem;font-weight:900;color:#0f172a;line-height:1;">{{ booking.flight.arr_time or booking.flight.arrival_time }}</div>
+            <div style="font-size:1rem;font-weight:700;color:#ef4444;margin-top:4px;">{{ booking.flight.destination_city or booking.flight.destination }}</div>
+          </div>
+        </div>
+
+        <!-- Dashed divider -->
+        <div style="border-top:2px dashed #e2e8f0;margin:0 -1.5rem 1.5rem;position:relative;">
+          <div style="position:absolute;left:-10px;top:-10px;width:20px;height:20px;background:#f0f4ff;border-radius:50%;border:2px solid #e2e8f0;"></div>
+          <div style="position:absolute;right:-10px;top:-10px;width:20px;height:20px;background:#f0f4ff;border-radius:50%;border:2px solid #e2e8f0;"></div>
+        </div>
+
+        <!-- Passengers -->
+        <h6 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color:#0f172a;">
+          <i class="bi bi-people-fill text-primary"></i>Passengers
+        </h6>
+        <div class="table-responsive mb-4">
+          <table class="table" style="font-size:0.88rem;">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in booking.passengers %}
+              <tr>
+                <td style="font-weight:600;color:#6366f1;">{{ loop.index }}</td>
+                <td style="font-weight:700;">{{ p.name }}</td>
+                <td>{{ p.age or 'N/A' }}</td>
+                <td>{{ p.gender or 'N/A' }}</td>
+                <td>
+                  {% if booking.status == 'confirmed' %}
+                  <span class="status-badge confirmed"><i class="bi bi-check-circle-fill"></i>Confirmed</span>
+                  {% else %}
+                  <span class="status-badge cancelled"><i class="bi bi-x-circle-fill"></i>Cancelled</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Payment / Refund Summary -->
+        {% if booking.status == 'cancelled' %}
+        <div style="background:rgba(239,68,68,0.07);border:1.5px solid rgba(239,68,68,0.2);border-radius:14px;padding:1.25rem;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.82rem;color:#64748b;">Refund Amount ({{ booking.refund_percentage if booking.refund_percentage is defined else 100 }}%)</div>
+            <div style="font-size:2rem;font-weight:900;color:#ef4444;line-height:1.1;">₹{{ "{:,.0f}".format(booking.refund_amount if booking.refund_amount is defined else booking.total_price) }}</div>
+          </div>
+          <div class="text-end">
+            <span style="background:#ef4444;color:#fff;font-size:0.85rem;font-weight:700;padding:6px 16px;border-radius:8px;display:block;margin-bottom:6px;">Refund Processed</span>
+            <small style="color:#94a3b8;font-size:0.78rem;">{{ booking.cancellation_policy if booking.cancellation_policy is defined else 'Cancelled' }}</small>
+          </div>
+        </div>
+        {% else %}
+        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:1.25rem;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:0.82rem;color:#64748b;">Total Paid</div>
+            <div style="font-size:2rem;font-weight:900;color:#10b981;line-height:1.1;">₹{{ "{:,.0f}".format(booking.total_price) }}</div>
+          </div>
+          <div class="text-end">
+            <span style="background:#10b981;color:#fff;font-size:0.85rem;font-weight:700;padding:6px 16px;border-radius:8px;display:block;margin-bottom:6px;"><i class="bi bi-check-circle me-1"></i>Payment Complete</span>
+            <small style="color:#94a3b8;font-size:0.78rem;">TXN: {{ booking.payment.transaction_id if booking.payment is mapping else 'TXN-OK' }}</small>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex gap-3 justify-content-center">
+      <button onclick="window.print()" id="print-ticket-btn" class="btn btn-outline-dark fw-bold px-4 rounded-pill">
+        <i class="bi bi-printer me-2"></i>Print E-Ticket
+      </button>
+      <a href="{{ url_for('bookings.list_bookings') }}" id="view-all-bookings-btn" class="btn btn-primary fw-bold px-4 rounded-pill" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;box-shadow:0 8px 20px rgba(99,102,241,0.35);">
+        <i class="bi bi-ticket-perforated me-2"></i>My Bookings
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
